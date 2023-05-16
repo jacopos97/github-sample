@@ -39,5 +39,5 @@ jobs:
         - name: Archive JUnit Report
           uses: actions/upload-artifact@v3
           with:
-              name: surefire-report-jdk-${{ matrix.java }}
+              name: surefire-report-jdk-${{ matrix.java }}-${{ matrix.os}}
               path: '**/target/site'
