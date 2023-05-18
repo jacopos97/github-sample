@@ -8,6 +8,8 @@ on:
 jobs:
     build:
         runs-on: ubuntu-latest
+        env:
+            workdir: myapp
         strategy:
             matrix:
                 # test against several Java versions:
@@ -15,10 +17,9 @@ jobs:
                 include:
                   - java: 17
                     additional-maven-args: >
-                        -Pjacoco
+                        -Pcoveralls
                         -DrepoToken=$COVERALLS_REPO_TOKEN
                         -DpullRequest=${{ github.event.pull_request.number }}
-                        coveralls:report
         
         name: Build with Java ${{ matrix.java }}
         
@@ -37,14 +38,13 @@ jobs:
               key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml', '**/*.yml') }}
               restore-keys: ${{ runner.os }}-m2-
         - name: Build with Maven
-          run: >
-              mvn -f myapp/pom.xml clean verify ${{ matrix.additional-maven-args }}
+          run: mvn verify ${{ matrix.additional-maven-args }}
+          working-directory: ${{ env.workdir }}
           env:
               COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
         - name: Generate JUnit Report
-          run: >
-              mvn -f myapp/pom.xml
-              surefire-report:report-only site:site -DgenerateReports=false
+          run: mvn surefire-report:report-only site:site -DgenerateReports=false
+          working-directory: ${{ env.workdir }}
           if: ${{ failure() }}  
         - name: Archive JUnit Report
           uses: actions/upload-artifact@v3
